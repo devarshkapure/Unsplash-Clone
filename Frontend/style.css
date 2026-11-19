@@ -180,12 +180,10 @@ body {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(
-        to right,
-        rgba(0, 0, 0, 0.62) 0%,
-        rgba(0, 0, 0, 0.35) 60%,
-        rgba(0, 0, 0, 0.1) 100%
-    );
+    background: linear-gradient(to right,
+            rgba(0, 0, 0, 0.62) 0%,
+            rgba(0, 0, 0, 0.35) 60%,
+            rgba(0, 0, 0, 0.1) 100%);
 }
 
 .hero-content {
@@ -196,10 +194,21 @@ body {
 
 /* Text goes light when slideshow is active */
 
-.hero.has-bg .tag          { color: rgba(255,255,255,0.75); }
-.hero.has-bg h1            { color: #fff; }
-.hero.has-bg .curated      { color: rgba(255,255,255,0.7); }
-.hero.has-bg .description  { color: rgba(255,255,255,0.85); }
+.hero.has-bg .tag {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.hero.has-bg h1 {
+    color: #fff;
+}
+
+.hero.has-bg .curated {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.hero.has-bg .description {
+    color: rgba(255, 255, 255, 0.85);
+}
 
 /* PHOTO CREDIT bottom-right */
 
@@ -209,16 +218,18 @@ body {
     right: 20px;
     z-index: 2;
     font-size: 11px;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255, 255, 255, 0.55);
     transition: color 0.3s;
 }
 
 .hero-photo-credit a {
-    color: rgba(255,255,255,0.75);
+    color: rgba(255, 255, 255, 0.75);
     text-decoration: none;
 }
 
-.hero-photo-credit a:hover { color: #fff; }
+.hero-photo-credit a:hover {
+    color: #fff;
+}
 
 .tag {
     font-size: 11px;
