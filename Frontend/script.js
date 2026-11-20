@@ -20,61 +20,73 @@ const categoryData = {
     title: "Featured",
     description:
       "A curated selection of the most stunning and inspiring photographs, handpicked by our editorial team to showcase exceptional visual storytelling.",
+    heroQuery: "featured photography stunning",
   },
   "new fall": {
     title: "New Fall",
     description:
       "Celebrate the beauty of autumn with golden leaves, cozy atmospheres, and the warm tones that make fall a photographer's favorite season.",
+    heroQuery: "autumn fall leaves golden",
   },
   wallpapers: {
     title: "Wallpapers",
     description:
       "From epic drone shots to inspiring moments in nature — enjoy the best background for your desktop or mobile.",
+    heroQuery: "wallpaper landscape desktop background",
   },
   nature: {
     title: "Nature",
     description:
       "This category showcases nature's beauty, from vast landscapes to macro details, transporting viewers to the outdoors.",
+    heroQuery: "nature forest mountains wildlife",
   },
   "3d renders": {
     title: "3D Renders",
     description:
       "This category showcases digitally rendered creations that blend technology and art, exploring the limitless potential of digital creativity.",
+    heroQuery: "3d render abstract digital art",
   },
   experimental: {
     title: "Experimental",
     description:
       "This category invites photographers to explore new techniques and perspectives, pushing creative boundaries.",
+    heroQuery: "experimental abstract creative photography",
   },
   film: {
     title: "Film",
     description:
       "Rediscover the timeless charm of analog photography — grain, light leaks, and the authentic warmth that only film can capture.",
+    heroQuery: "film photography analog grain vintage",
   },
   "street photography": {
     title: "Street Photography",
     description:
       "Candid moments and urban stories captured on the streets of cities around the world, celebrating everyday life and human connection.",
+    heroQuery: "street photography urban city candid",
   },
   architecture: {
     title: "Architecture",
     description:
       "From towering skyscrapers to minimalist interiors, explore the art of built environments and the beauty of structural design.",
+    heroQuery: "architecture building skyscraper modern",
   },
   textures: {
     title: "Textures",
     description:
       "Patterns, surfaces, and close-up details that reveal the hidden beauty in everyday materials and natural formations.",
+    heroQuery: "texture pattern surface macro detail",
   },
   travel: {
     title: "Travel",
     description:
       "Wander the world through stunning travel photography — iconic landmarks, hidden gems, and the spirit of adventure.",
+    heroQuery: "travel adventure landmark destination",
   },
   people: {
     title: "People",
     description:
       "Portraits and candid shots that celebrate human emotion, diversity, and the stories written on every face.",
+    heroQuery: "people portrait faces diversity",
   },
 };
 
@@ -223,14 +235,24 @@ function displayPhotos(photos) {
 
   showNoResults(false);
 
-  const columns = [
-    document.createElement("div"),
-    document.createElement("div"),
-    document.createElement("div"),
-  ];
-  columns.forEach((col) => col.classList.add("gallery-column"));
+  // 🦴 Use 3 columns — track height of each to distribute photos evenly
+  const numCols = 3;
+  const columns = [];
+  const colHeights = []; // track estimated height per column
 
-  photos.forEach((photo, index) => {
+  for (let i = 0; i < numCols; i++) {
+    columns.push(document.createElement("div"));
+    columns[i].classList.add("gallery-column");
+    colHeights.push(0);
+  }
+
+  photos.forEach((photo) => {
+    // 🦴 Find the shortest column — put photo there (no more big gaps!)
+    let shortest = 0;
+    for (let i = 1; i < numCols; i++) {
+      if (colHeights[i] < colHeights[shortest]) shortest = i;
+    }
+
     const card = document.createElement("div");
     card.classList.add("photo-card");
 
@@ -280,7 +302,12 @@ function displayPhotos(photos) {
       }
     });
 
-    columns[index % 3].appendChild(card);
+    columns[shortest].appendChild(card);
+
+    // 🦴 Estimate height from aspect ratio (width / height)
+    // Smaller ratio = taller image = more height added
+    const aspectRatio = (photo.width && photo.height) ? (photo.width / photo.height) : 1.5;
+    colHeights[shortest] += (1 / aspectRatio) + 0.06; // 0.06 accounts for gap
   });
 
   columns.forEach((col) => gallery.appendChild(col));
@@ -395,8 +422,8 @@ async function openModal(photo) {
 
       // Click related photo → open THAT photo in modal!
       card.addEventListener("click", () => {
-        // Scroll modal back to top
-        modal.scrollTop = 0;
+        // Scroll modal content back to top
+        document.querySelector(".modal-content").scrollTop = 0;
         openModal(relPhoto);
       });
 
@@ -759,6 +786,12 @@ categoryLinks.forEach((link) => {
     // 🦴 Update hero section to match selected category!
     updateHero(category);
 
+    // 🦴 Update hero slideshow background photos to match category!
+    const key = category.toLowerCase();
+    const data = categoryData[key];
+    const heroQuery = data?.heroQuery || category;
+    initHeroSlideshow(heroQuery);
+
     const photos = await fetchManyPhotos(category);
     displayPhotos(photos);
   });
@@ -772,17 +805,35 @@ categoryLinks.forEach((link) => {
 // 🌅 HERO SLIDESHOW — 5 PHOTOS ROTATING
 // ========================================
 
-async function initHeroSlideshow() {
+// 🦴 HERO SLIDESHOW STATE — caveman remember which timer is running
+let heroSlideshowInterval = null;
+
+async function initHeroSlideshow(query) {
   const slides = document.querySelectorAll(".hero-slide");
   const hero = document.querySelector(".hero");
   const creditLink = document.getElementById("heroCreditLink");
   if (!slides.length) return;
 
-  // Fetch 5 landscape-style photos for the background
-  const photos = await fetchPhotos("landscape nature", 1, 5);
+  // 🦴 Use category-specific query, or fall back to default
+  const searchQuery = query || "wallpaper landscape desktop background";
+
+  // Fetch 5 photos matching the category for the background
+  const photos = await fetchPhotos(searchQuery, 1, 5);
   if (!photos || photos.length === 0) return;
 
-  // Fill all slides with background images
+  // 🦴 Clear old timer so slides don't go crazy
+  if (heroSlideshowInterval) {
+    clearInterval(heroSlideshowInterval);
+    heroSlideshowInterval = null;
+  }
+
+  // 🦴 Reset all slides — wipe the cave wall clean
+  slides.forEach((slide) => {
+    slide.classList.remove("active");
+    slide.style.backgroundImage = "";
+  });
+
+  // Fill all slides with new background images
   const pool = photos.slice(0, 5);
   pool.forEach((photo, i) => {
     if (slides[i]) {
@@ -807,7 +858,7 @@ async function initHeroSlideshow() {
   updateCredit(0);
 
   // Rotate every 5 seconds
-  setInterval(() => {
+  heroSlideshowInterval = setInterval(() => {
     slides[current].classList.remove("active");
     current = (current + 1) % pool.length;
     slides[current].classList.add("active");
@@ -825,7 +876,7 @@ async function init() {
 
   const photos = await fetchManyPhotos("wallpapers");
   displayPhotos(photos);
-  initHeroSlideshow();
+  initHeroSlideshow(categoryData["wallpapers"].heroQuery);
 }
 
 init();
