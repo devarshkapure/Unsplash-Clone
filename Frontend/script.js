@@ -103,7 +103,7 @@ function updateHero(categoryName) {
   heroSubmitBtn.textContent = `Submit to ${data.title}`;
 
   // Also update the page title
-  document.title = `${data.title} | Unsplash Clone`;
+  document.title = `${data.title} | Stumble`;
 }
 
 // Modal elements
